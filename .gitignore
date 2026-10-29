@@ -1,0 +1,15 @@
+.claude/
+.DS_Store
+.env
+.env.*
+.idea/
+.vscode/
+*.log
+CLAUDE.md
+desktop.ini
+dist
+node_modules
+Thumbs.db
+tmp/
+workbench/drafts/
+workbench/packs/

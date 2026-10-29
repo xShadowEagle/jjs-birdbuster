@@ -1,0 +1,48 @@
+import { GROUND_Y } from '../../constants';
+import type { CutsceneDef } from '../cutscene';
+import { RIDER, levelCard, riderIn, riderOut } from './beats';
+
+export const l2l3: CutsceneDef = {
+  stage: 'woods',
+  actors: [
+    RIDER,
+    { id: 'rogue', texture: 'enemy.rogue', anim: 'rogue_creep', x: 450, flip: true },
+    { id: 'pop', texture: 'fx.peck', x: 190, y: GROUND_Y - 9, hidden: true, depth: 2 },
+    { id: 'kaktu', texture: 'enemy.kaktu', anim: 'kaktu_run_lit', x: 440 },
+  ],
+  beats: [
+    riderIn(),
+    { emote: 'rider', icon: 'heart', who: 'bird' },
+    { say: 'bird', text: 'l2-l3.burp', at: 'rider' },
+    { move: 'rogue', x: 200, ms: 2200 },
+    { emote: 'rider', icon: 'anger' },
+    { say: 'jj', text: 'l2-l3.again', at: 'rider' },
+    { play: 'rider', anim: 'peck' },
+    { wait: 50 },
+    { sound: 'peck' },
+    { show: 'pop' },
+    { play: 'pop', anim: 'peck_pop' },
+    { sound: 'bonk' },
+    { shake: 80 },
+    { sound: 'whoosh' },
+    { move: 'rogue', x: 470, y: 20, angle: 1080, ms: 900, ease: 'Quad.out', async: true },
+    { wait: 130 },
+    { hide: 'pop' },
+    { play: 'rider', anim: 'idle' },
+    { wait: 800 },
+    { hide: 'rogue' },
+    { say: 'jj', text: 'l2-l3.hard', at: 'rider' },
+    { say: 'jj', text: 'l2-l3.swamp', at: 'rider' },
+    { move: 'kaktu', x: 320, ms: 900, ease: 'Quad.out' },
+    { play: 'kaktu', anim: 'kaktu_puff_lit' },
+    { emote: 'rider', icon: 'exclaim', who: 'bird' },
+    { say: 'jj', text: 'l2-l3.firefly', at: 'rider' },
+    { play: 'kaktu', anim: 'kaktu_run_lit' },
+    { move: 'kaktu', x: 440, ms: 700, ease: 'Quad.in' },
+    { say: 'jj', text: 'l2-l3.dark', at: 'rider' },
+    { say: 'jj', text: 'l2-l3.light', at: 'rider' },
+    { say: 'bird', text: 'l2-l3.kweh', at: 'rider' },
+    levelCard('l3'),
+    riderOut,
+  ],
+};

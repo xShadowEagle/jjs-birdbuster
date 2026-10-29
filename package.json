@@ -1,0 +1,27 @@
+{
+  "name": "jjs-birdbuster",
+  "version": "1.6.13",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "npm run -s check && vite build",
+    "preview": "vite preview --host --base /jjs-birdbuster/",
+    "typecheck": "tsc",
+    "check:blocks": "node --import ./tools/resolve-ts.ts tools/check-blocks.ts",
+    "check:assets": "node --import ./tools/resolve-ts.ts tools/check-assets.ts",
+    "check:texts": "node --import ./tools/resolve-ts.ts tools/check-texts.ts",
+    "bake:art": "node --import ./tools/resolve-ts.ts tools/art/bake.ts",
+    "art:sheet": "node --import ./tools/resolve-ts.ts tools/art/sheet.ts",
+    "art:same": "node --import ./tools/resolve-ts.ts tools/art/same.ts",
+    "check": "tsc && npm run -s check:blocks && npm run -s check:assets && npm run -s check:texts"
+  },
+  "dependencies": {
+    "phaser": "4.2.1"
+  },
+  "devDependencies": {
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
+  }
+}
