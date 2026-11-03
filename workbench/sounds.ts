@@ -17,7 +17,7 @@ export const SOUND_GROUPS: [string, SoundEntry[]][] = [
     ['Peck', TONES.peck], ['Cleave', TONES.cleave], ['Dash', TONES.dash], ['RainbowCleave', TONES.rainbowCleave], ['RainbowDash', TONES.rainbowDash],
   ]],
   ['Hits', [['Bonk', TONES.bonk], ['Clang', TONES.clang], ['Hurt', TONES.hurt]]],
-  ['Bosses', [['Pound', TONES.pound], ['Burst', TONES.burst], ['Gift', TONES.gift]]],
+  ['Bosses', [['Pound', TONES.pound], ['Ting', TONES.ting], ['Burst', TONES.burst], ['Gift', TONES.gift]]],
   ['Items / End', [['Pickup', () => TONES.pickup()], ['Pickups', () => repeat(6, 0.12, TONES.pickup)], ['Clear', TONES.clear], ['Fail', TONES.fail]]],
   ['Menu / Story', [
     ['Click', TONES.click], ['Pop', TONES.pop], ['Whoosh', TONES.whoosh],

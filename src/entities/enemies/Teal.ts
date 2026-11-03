@@ -140,7 +140,7 @@ export default class Teal extends Boss<TealPhase, TealMove> {
     if (th === 'glint') this.glint = f;
     this.feathers.push(f);
     a.add(f);
-    emitBoss(this, TealEvent.Throw);
+    emitBoss(this, TealEvent.Throw, th === 'glint');
   }
 
   returned(f: Feather, a: Arena): void {

@@ -98,6 +98,7 @@ export const TONES = {
     ...chord(0.05, 0.03), ...rainbow(0, 0.06, 0.12, 0.04), ...twinkle(0.5, 14),
   ],
   clang: (): Tone[] => [{ f0: 1200, f1: 1150, dur: 0.12, type: 'square', vol: 0.03 }, { f0: 1800, dur: 0.08, type: 'triangle', vol: 0.03 }],
+  ting: (): Tone[] => [{ f0: 1976, dur: 0.45, type: 'triangle', vol: 0.045 }, { f0: 3951, dur: 0.15, type: 'sine', vol: 0.012 }],
   hurt: (): Tone[] => [{ f0: 320, f1: 90, dur: 0.22, type: 'sawtooth', vol: 0.05 }, { f0: 160, f1: 60, dur: 0.2, type: 'square', vol: 0.04, at: 0.04 }],
   creak: (): Tone[] => [
     { f0: 140, f1: 190, dur: 0.5, type: 'sawtooth', vol: 0.03 }, { f0: 220, f1: 160, dur: 0.35, type: 'square', vol: 0.02, at: 0.35 },

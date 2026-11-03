@@ -53,9 +53,9 @@ export function bossFeedback(scene: Phaser.Scene, fx: Fx, boss: Boss<string>, so
   hookBoss(boss, [
     [BossEvent.Swoop, (ghosts?: number) => fx.afterimages(boss, undefined, ghosts ?? SWOOP_GHOSTS)],
     [GreyEvent.Pound, (x: number) => { sound(sfx.pound); crumble(scene, x, DEPTH.fx); shake(160, 0.008); }],
-    [TealEvent.Throw, () => sound(sfx.whoosh)],
+    [TealEvent.Throw, (glint: boolean) => { sound(sfx.whoosh); if (glint) sound(sfx.ting); }],
     [TealEvent.Deflect, (x: number, y: number) => { sound(sfx.clang); fx.sparkle(x, y); shake(60, 0.004); }],
-    [TealEvent.Bat, () => sound(sfx.peck)],
+    [TealEvent.Bat, () => { sound(sfx.peck); sound(sfx.ting); }],
     [TealEvent.Struck, () => { sound(sfx.bonk); fx.sparkle(boss.x, boss.y); shake(120, 0.006); }],
     [LimeEvent.Slash, () => sound(sfx.cleave)],
     [LimeEvent.Burst, () => { sound(sfx.burst); shake(90, 0.005); }],

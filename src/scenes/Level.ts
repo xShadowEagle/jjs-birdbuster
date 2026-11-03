@@ -156,7 +156,7 @@ export default class Level extends Phaser.Scene {
   override update(_: number, delta: number): void {
     const dt = frameDt(delta);
     this.clock += stepped(this) * 1000;
-    this.controls.hint = this.bossFight?.hint;
+    this.controls.hint = this.phase === 'running' ? this.bossFight?.hint : undefined;
     this.controls.update();
     const pressed = this.controls.anyPressed;
 

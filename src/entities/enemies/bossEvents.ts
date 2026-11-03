@@ -14,7 +14,7 @@ export const LimeEvent = {
 export interface BossEvents {
   [BossEvent.Swoop]: [ghosts?: number];
   [GreyEvent.Pound]: [x: number];
-  [TealEvent.Throw]: [];
+  [TealEvent.Throw]: [glint: boolean];
   [TealEvent.Deflect]: [x: number, y: number];
   [TealEvent.Bat]: [];
   [TealEvent.Struck]: [];
