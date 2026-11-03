@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, GAME_W, GROUND_Y, PLAYER } from '../../constants';
+import { DEPTH, GAME_W, GROUND_Y, PLAYER, type ButtonId } from '../../constants';
 import { anim, tex } from '../../assets/keys';
 import { TEAL_PLUCKED, type AnimKey, type SheetKey, type TealPlucked } from '../../assets/manifest';
 import Enemy, { nextAttackId, secsToBird, type Arena, type Attack, type HitResult, type Meeting } from './Enemy';
@@ -41,13 +41,19 @@ export default class Teal extends Boss<TealPhase, TealMove> {
   private releasedAt = -Infinity;
   private glint?: Feather;
   private ralliesLeft = 0;
+  private feathers: Feather[] = [];
 
   protected override meets(attack: Attack): Meeting {
     if (attack === 'feather') return 'hurt';
     return attack === 'dash' ? 'pass' : 'blocked';
   }
 
+  protected override get openTo(): ButtonId | undefined {
+    return this.phase === 'throw' || this.feathers.some(f => f.inPlay && !f.harmless) ? 'attack' : undefined;
+  }
+
   protected override act(dt: number, a: Arena): void {
+    this.feathers = this.feathers.filter(f => f.inPlay);
     switch (this.phase) {
       case 'descend':
         if (this.glideTo(THROW, THROW.descendMs)) this.go('flourish');
@@ -132,6 +138,7 @@ export default class Teal extends Boss<TealPhase, TealMove> {
     if (th === 'feint') return;
     const f = new Feather(this.scene, this.x + WING_TIP.dx, this.y + WING_TIP.dy, th, this.volley.speed, a.player.x, this);
     if (th === 'glint') this.glint = f;
+    this.feathers.push(f);
     a.add(f);
     emitBoss(this, TealEvent.Throw);
   }

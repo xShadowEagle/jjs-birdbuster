@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, GAME_W, GROUND_Y } from '../../constants';
+import { DEPTH, GAME_W, GROUND_Y, type ButtonId } from '../../constants';
 import { anim, frameCount, tex } from '../../assets/keys';
 import type { SheetKey } from '../../assets/manifest';
 import type { Box } from '../../geom';
@@ -78,6 +78,8 @@ export default class Lime extends Boss<LimePhase, LimeMove> {
   override get harmless(): boolean { return this.phase === 'cat'; }
 
   get charging(): boolean { return this.phase === 'charge'; }
+
+  protected override get openTo(): ButtonId | undefined { return this.part === 'p1' && this.charging ? 'dash' : undefined; }
 
   private get enraged(): boolean { return this.part === 'p3' && this.hp <= ENRAGED.hp; }
 

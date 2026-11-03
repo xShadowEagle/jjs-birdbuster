@@ -31,7 +31,7 @@ Add a `Block` to the level's list with a `tier` (docs/levels.md). Start and end 
 ## Boss
 A `BossSpec` in the level's `bosses` (which rival, hp, swoop speed, hover time), fought one after another (`BossFight`).
 - A new rival: an entry in `RIVALS` (`src/rivals.ts`: name, name-tag colour, voice) and its plumage in `PLUMAGE` (`tools/art/palette.ts`), then `npm run bake:art`. Its sheet, portrait, animations and speaking character follow from the list.
-- Its moves: a class extending `Boss.ts`: its phases in `act`, what it does after hovering in `nextMove`, after a swoop in `afterSwoop`; picked by rival in `makeBoss` (`src/entities/enemies/bosses.ts`), like `Grey.ts`, `Teal.ts`, `Lime.ts`.
+- Its moves: a class extending `Boss.ts`: its phases in `act`, what it does after hovering in `nextMove`, after a swoop in `afterSwoop`, the button that hurts it while it's open in `openTo` (the touch hint); picked by rival in `makeBoss` (`src/entities/enemies/bosses.ts`), like `Grey.ts`, `Teal.ts`, `Lime.ts`.
 - Its sounds and effects: events it emits, played in `bossFeedback` (`src/entities/feedback.ts`).
 - The workbench lists its moves from `BOSS_MOVES` (`workbench/foes.ts`), and the play-test bot needs to know them (`src/dev/playtest.ts`).
 

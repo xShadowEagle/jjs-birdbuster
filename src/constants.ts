@@ -25,6 +25,9 @@ export const DIG_FLOOR = { crater: 5, furrow: 1, plow: 8 };
 
 export const RETRY_DELAY = 800;
 
+/** ms from bright to faint: the first web's hint and the boss hint's ring */
+export const HINT_BLINK_MS = 320;
+
 export const MAX_FRAME_MS = 100;
 export const frameDt = (delta: number): number => Math.min(delta, MAX_FRAME_MS) / 1000;
 

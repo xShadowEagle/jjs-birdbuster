@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { DEPTH, GAME_W, TOUCH, type ButtonId, type Swing } from './constants';
-import { RAINBOW_BUTTONS, RING_FRAME_MS, drawTouchDisc, iconAlpha, iconOf, rainbowIconOf, type RainbowButton } from './ui/touch';
+import { RAINBOW_BUTTONS, RING_FRAME_MS, drawTouchDisc, hintAlpha, iconAlpha, iconOf, rainbowIconOf, type RainbowButton } from './ui/touch';
 import { frameCount, tex } from './assets/keys';
 import { isTouchScreen } from './device';
 import { t } from './language';
@@ -41,6 +41,8 @@ export default class Controls {
   /** 0 = ready, 1 = just used */
   dashCooldown = 0;
   readonly rainbowCharged = new Set<RainbowButton>();
+  /** wears the gold ring */
+  hint?: ButtonId;
   driver?: (press: (id: ButtonId) => void, hold: (id: ButtonId) => void) => void;
 
   private readonly keys: Record<BoundKey, Key>;
@@ -156,7 +158,7 @@ export default class Controls {
       ring?.setVisible(shown && !!charged);
       if (!shown) continue;
       const { x, y } = TOUCH.buttons[id], down = this.isDown.has(id);
-      drawTouchDisc(g, x, y, { down, cool: id === 'dash' ? this.dashCooldown : 0 });
+      drawTouchDisc(g, x, y, { down, cool: id === 'dash' ? this.dashCooldown : 0, hint: id === this.hint ? hintAlpha(this.scene.time.now) : 0 });
       icon.setTexture(charged ? rainbowIconOf(charged) : iconOf(id, this.swing)).setAlpha(iconAlpha(down));
       if (charged) ring?.setFrame(Math.floor(this.scene.time.now / RING_FRAME_MS) % frameCount(ring.texture));
     }

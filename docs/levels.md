@@ -27,3 +27,4 @@ The three rivals one after another (`BossFight`), each a `Boss` (`src/entities/e
 - **Grey** (`Grey.ts`, 3 hits): movement. Only open to a hit while stuck after a pound.
 - **Teal** (`Teal.ts`, 4 hits): attacks. Only her own feathers, cleaved back, hurt her; her volleys ramp by hits taken (`VOLLEYS`).
 - **Lime** (`Lime.ts`, 5 hp): the dash, in three parts, which the dev sidebar starts each of (Lime-P1, -P2, -P3). P2 hands the bird the rainbow powers (`Rainbow`), and in P3 only those hurt her.
+- Until a boss is first hurt, the touch button that answers it wears a blinking gold ring while it's open (`Boss.openTo`): attack while Grey is stuck and while Teal throws a volley (till its last feather is down), dash while Lime charges in P1. Not on a keyboard; a restart shows it again.

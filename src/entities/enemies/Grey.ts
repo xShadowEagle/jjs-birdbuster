@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, DIG_FLOOR, GAME_W, GROUND_Y } from '../../constants';
+import { DEPTH, DIG_FLOOR, GAME_W, GROUND_Y, type ButtonId } from '../../constants';
 import { anim, tex } from '../../assets/keys';
 import { BIRD_FRAMES } from '../../assets/manifest';
 import type { Box } from '../../geom';
@@ -47,6 +47,8 @@ export default class Grey extends Boss<GreyPhase, GreyMove> {
   }
 
   override get harmless(): boolean { return HARMLESS.includes(this.phase); }
+
+  protected override get openTo(): ButtonId | undefined { return this.phase === 'stuck' ? 'attack' : undefined; }
 
   override get box(): Box {
     return this.phase === 'stuck' ? { x: this.x - STUCK_BOX.w / 2, y: GROUND_Y - STUCK_BOX.h, w: STUCK_BOX.w, h: STUCK_BOX.h } : super.box;

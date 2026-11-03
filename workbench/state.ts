@@ -12,7 +12,7 @@ export const BIOME_IDS = Object.keys(BIOMES) as BiomeId[];
 export const VIEW_IDS = ['scene', 'sheet', 'breaks', 'interface', 'enemies', 'attacks', 'sounds', 'texts'] as const;
 export type View = (typeof VIEW_IDS)[number];
 
-export const PRESS = ['Idle', 'Pressed', 'Cooling', 'Rainbow'] as const;
+export const PRESS = ['Idle', 'Pressed', 'Cooling', 'Rainbow', 'Hint'] as const;
 export const SHOWN = [['all', 'All'], ['todo', 'TODO'], ['problems', 'Problems']] as const;
 export type Shown = (typeof SHOWN)[number][0];
 type Press = (typeof PRESS)[number];

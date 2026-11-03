@@ -1,8 +1,8 @@
 import type Phaser from 'phaser';
-import { GROUND_Y, TOUCH } from '../../src/constants';
+import { GROUND_Y, TOUCH, type ButtonId } from '../../src/constants';
 import { IMAGES, SHEETS } from '../../src/assets/manifest';
 import { frameCount } from '../../src/assets/keys';
-import { RAINBOW_BUTTONS, RING_FRAME_MS, drawTouchDisc, iconAlpha, iconOf, rainbowIconOf } from '../../src/ui/touch';
+import { RAINBOW_BUTTONS, RING_FRAME_MS, drawTouchDisc, hintAlpha, iconAlpha, iconOf, rainbowIconOf } from '../../src/ui/touch';
 import { drawDashBar, tintDashLabel } from '../../src/ui/dashBar';
 import { textWidth } from '../../src/ui/font';
 import { label } from '../../src/ui/text';
@@ -13,15 +13,24 @@ import { BUTTON_IDS, BUTTON_SETS, LIVE, draftTex, drafts } from '../catalog';
 import { state } from '../state';
 import { runningBird } from './images';
 
+const HINTED: readonly ButtonId[] = ['attack', 'dash'];
+
 export function showInterface(scene: Phaser.Scene): void {
   runningBird(scene);
   const set = BUTTON_SETS[state.pick], g = scene.add.graphics().setDepth(20);
   const texOf = (key: string, file: string) => (set !== LIVE && drafts.get(file)?.has(set) ? draftTex(file, set) : key);
   const down = state.press === 'Pressed', rings: Phaser.GameObjects.Sprite[] = [];
+  const drawDiscs = () => {
+    g.clear();
+    for (const id of BUTTON_IDS) {
+      const { x, y } = TOUCH.buttons[id], cool = state.press === 'Cooling' && id === 'dash' ? 0.5 : 0;
+      drawTouchDisc(g, x, y, { down, cool, hint: state.press === 'Hint' && HINTED.includes(id) ? hintAlpha(scene.time.now) : 0 });
+    }
+  };
+  drawDiscs();
   for (const id of BUTTON_IDS) {
-    const { x, y } = TOUCH.buttons[id], cool = state.press === 'Cooling' && id === 'dash' ? 0.5 : 0;
+    const { x, y } = TOUCH.buttons[id];
     const charged = state.press === 'Rainbow' && RAINBOW_BUTTONS.find(b => b === id);
-    drawTouchDisc(g, x, y, { down, cool });
     if (charged) rings.push(scene.add.sprite(x, y, texOf('ui.rainbow_ring', SHEETS['ui.rainbow_ring'].file), 0).setDepth(20.5));
     const icon = charged ? rainbowIconOf(charged) : iconOf(id, state.swing === 'Cleave' ? 'cleave' : 'peck');
     scene.add.image(x, y, texOf(icon, IMAGES[icon])).setDepth(21).setAlpha(iconAlpha(down));
@@ -34,6 +43,7 @@ export function showInterface(scene: Phaser.Scene): void {
   const barX = 6 + textWidth(t('hud.dash')) + 6, cool = state.press === 'Cooling' ? 0.5 : 0, charged = state.press === 'Rainbow';
   word.setAlpha(cool > 0 ? 0.4 : 1);
   const drawBars = () => {
+    drawDiscs();
     tintDashLabel(word, charged, scene.time.now);
     drawDashBar(bar.clear(), barX, 33, cool, charged, scene.time.now);
   };

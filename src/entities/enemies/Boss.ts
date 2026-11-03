@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEPTH, GAME_W, GROUND_Y, PLAYER, swoopY } from '../../constants';
+import { DEPTH, GAME_W, GROUND_Y, PLAYER, swoopY, type ButtonId } from '../../constants';
 import { anim, tex } from '../../assets/keys';
 import { BIRD_FRAMES, type AnimKey, type SheetKey } from '../../assets/manifest';
 import type { RivalId } from '../../rivals';
@@ -57,6 +57,7 @@ export default abstract class Boss<Phase extends string = never, Move extends st
   protected fromY = 0;
   private stars: Phaser.GameObjects.Image[] = [];
   protected anger?: Phaser.GameObjects.Image;
+  private hurtOnce = false;
 
   constructor(scene: Phaser.Scene, cameraLeft: number, protected readonly spec: BossSpec) {
     super(scene, cameraLeft + GAME_W + 60, HOVER.y, tex(`char.boss_${spec.rival}`));
@@ -169,11 +170,16 @@ export default abstract class Boss<Phase extends string = never, Move extends st
     this.go('enter');
   }
 
+  /** the touch button to hint at: the one that hurts it now, until it's first hurt */
+  get hint(): ButtonId | undefined { return this.hurtOnce ? undefined : this.openTo; }
+
+  protected get openTo(): ButtonId | undefined { return undefined; }
+
   override takeHit(attack: Attack, id: number, arena: Arena): HitResult | null {
     const r = super.takeHit(attack, id, arena);
     if (r === 'hurt') this.knockBack(arena);
     if (r === 'defeated') { this.hold(HURT_FRAME); this.anger?.destroy(); this.anger = undefined; }
-    if (r === 'hurt' || r === 'defeated') this.onHp?.(this.hp);
+    if (r === 'hurt' || r === 'defeated') { this.hurtOnce = true; this.onHp?.(this.hp); }
     return r;
   }
 

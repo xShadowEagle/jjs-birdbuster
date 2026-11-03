@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { ButtonId } from '../constants';
 import type Boss from './enemies/Boss';
 import type { BossSpec } from './enemies/Boss';
 import { makeBoss } from './enemies/bosses';
@@ -16,6 +17,8 @@ export default class BossFight {
   private current?: Boss<string>;
   private waitUntil = 0;
   beaten = false;
+
+  get hint(): ButtonId | undefined { return this.current?.alive ? this.current.hint : undefined; }
 
   get defeated(): number { return this.index + (this.current?.alive ? 0 : 1); }
   get allDown(): boolean { return this.defeated >= this.specs.length; }

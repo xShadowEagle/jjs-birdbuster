@@ -276,11 +276,8 @@ function wings({ pose, phase, wing, far, held, grip = 3 }: Frame, C: Plumage, cx
 const PLUMES: [number, number, number, number, number][] = [[-8.5, -6.5, 5.2, 2.4, 58], [-10, -3, 4.8, 2.3, 32], [-10, 0.5, 4, 2, 10]];
 /** the tail's extra degrees up */
 const TAIL_RUN = [0, 5, 8, 5, 0, -4];
-const SKIN = { base: 0xf0a8a0, light: 0xfcc8c0 };
 /** [root, tip], from the body's centre */
 const RUFFLES: [P, P][] = [[[-3, -5], [-5.5, -9.5]], [[6.5, 2.5], [10, 4.5]], [[-1, 5.5], [-2.5, 9.5]]];
-/** [dx, dy, rx, ry], from the body's centre */
-const PATCHES: [number, number, number, number][] = [[1, 3.6, 1.6, 1.1], [7, 0.5, 1.2, 1]];
 
 /** Triangles from the head's centre; the crest's spikes [base, base, tip] each. */
 const BEAK: Record<'open' | 'hurt' | 'shut', P[][]> = {
@@ -354,12 +351,9 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
     return null;
   };
 
-  const ruffles = RUFFLES.slice(0, plucked), patches = PATCHES.slice(0, Math.max(0, plucked - 1));
+  const ruffles = RUFFLES.slice(0, plucked);
   const pluckedSpots: Layer = (px, py) => {
     for (const [[rx, ry], [tx, ty]] of ruffles) if (segDist(px, py, cx + rx, cy + ry, cx + tx, cy + ty) < 0.7) return C.light;
-    for (const [dx, dy, rx, ry] of patches) {
-      if (ell(px, py, cx + dx, cy + dy, rx, ry)) return ell(px, py, cx + dx - 0.4, cy + dy - 0.4, rx * 0.5, ry * 0.5) ? SKIN.light : SKIN.base;
-    }
     return null;
   };
 

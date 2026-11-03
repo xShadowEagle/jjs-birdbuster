@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BIRD_SCREEN_X, DEPTH, GAME_W, GAME_H, GROUND_Y, frameDt, RETRY_DELAY } from '../constants';
+import { BIRD_SCREEN_X, DEPTH, GAME_W, GAME_H, GROUND_Y, HINT_BLINK_MS, frameDt, RETRY_DELAY } from '../constants';
 import Controls, { swingOf } from '../controls';
 import Player from '../entities/Player';
 import Pickups, { type Picked } from '../entities/Pickups';
@@ -38,7 +38,7 @@ export interface LevelData extends StepData {
 const WORLD_W = 1e8;
 const STREAK_MS = 1200;
 const INVULN_MS = 1500;
-const HINT = { y: GROUND_Y - 56, r: 14, blinkMs: 320 };
+const HINT = { y: GROUND_Y - 56, r: 14, blinkMs: HINT_BLINK_MS };
 const FINALE = { slow: 0.3, ms: 1300 };
 
 export default class Level extends Phaser.Scene {
@@ -156,6 +156,7 @@ export default class Level extends Phaser.Scene {
   override update(_: number, delta: number): void {
     const dt = frameDt(delta);
     this.clock += stepped(this) * 1000;
+    this.controls.hint = this.bossFight?.hint;
     this.controls.update();
     const pressed = this.controls.anyPressed;
 
