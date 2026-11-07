@@ -14,14 +14,16 @@ import { initOrientation } from './orientation';
 import { initWake } from './wake';
 import { fitZoom, maxLossHere } from './scale';
 import { awake } from './gate';
+import { sayHello } from './hello';
 
 declare global { interface Window { game?: Phaser.Game } }
 
-if (awake()) start();
-else {
+const asleep = !awake();
+if (asleep) {
   document.getElementById('loading')?.remove();
   document.getElementById('asleep')!.hidden = false;
-}
+} else start();
+if (!import.meta.env.DEV) sayHello(asleep);
 
 function start(): void {
   const game = new Phaser.Game({

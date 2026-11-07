@@ -6,6 +6,8 @@ export const EN = {
   'loading': 'loading...',
   'asleep.napping': 'bobo is napping...',
   'asleep.later': 'come back later!',
+  'console.hello': 'Kweh! Curious, huh? Nothing in here but code.',
+  'console.asleep': 'Trying to wake Bobo early? Nice try.',
   'rotate.turn': 'rotate your phone',
   'rotate.fullscreen': 'or tap for fullscreen',
 

@@ -7,6 +7,8 @@ export const DE: Record<TextKey, string> = {
   'loading': 'wird geladen...',
   'asleep.napping': 'bobo macht ein nickerchen...',
   'asleep.later': 'komm später wieder!',
+  'console.hello': "Kweh! Neugierig, hmm? Hier gibt's nur Code.",
+  'console.asleep': 'Hast du versucht Bobo früher zu wecken? Netter Versuch.',
   'rotate.turn': 'bitte gerät drehen',
   'rotate.fullscreen': 'oder für vollbild tippen',
 
