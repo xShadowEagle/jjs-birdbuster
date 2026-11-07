@@ -21,7 +21,7 @@ src/
   ui/            colors, the pixel font, Label, Button, Slider, SpeechBubble, touch, the HUD's dash bar, scrim
   audio/         settings (mute, volume), sfx (synth), music (tracks, preloading, crossfade)
   dev/           dev builds only: the sidebar, the play-tests
-public/assets/   every PNG, a folder per key group; music/; page/ (the tab's icon, the link's preview, the loading screen)
+public/assets/   every PNG, a folder per key group; music/; page/ (the tab's icon, the link's preview, the loading and asleep screens)
 public/licenses.txt  the licence texts, shipped as is
 tools/
   check-blocks.ts  every level's blocks: symbol rules, pits, dash spacing, the reach of placed items (simulated with the game's constants)
@@ -44,6 +44,7 @@ vite.config.ts   the dev server: its port, the texts endpoint, the workbench's a
 ## Display
 - 400x225, `pixelArt`, `roundPixels`. `fitZoom` (`src/scale.ts`, the workbench's too): on desktop a whole number of device pixels per game pixel (a plain fit if that wastes over 20% of the window); on touch screens it fills the screen unless a crisp fit loses at most 3%.
 - The loading screen is plain HTML and CSS in `index.html`, there before the script: the running bird, the word in every language (`page.loading`) and a bar that `Boot` fills; `Boot` removes it when the title is up.
+- The gate (`src/gate.ts`): the build opens at `OPENS`, midnight on the player's device. Before that `main.ts` doesn't start the game and shows `#asleep` from `index.html` instead: Bobo napping (`page.asleep`, eight frames) and the words `asleep.*` (`page.asleep_words`). The secret link `?key=...` opens it on a device for good: its hash is `KEY`, kept in the save; the link loses the key at once. A new key's hash: `node --import ./tools/resolve-ts.ts -e "import('./src/gate.ts').then(g => console.log(g.keyHash('the key')))"`. The dev build never locks; `npm run preview` does.
 - The page's head: the icons, the link's preview (`og:` tags, the picture by its whole hosted address) and `noindex`. The pictures are `PAGE_IMAGES`, baked by `tools/art/page.ts`; `check:assets` wants each named in the head.
 - Portrait on a touch screen: the rotate overlay (`src/orientation.ts`, plain DOM). It swallows input and emits `GameEvent.Blocked` / `Unblocked`: a level pauses, a cutscene and the credits freeze (`freezeWhileBlocked`). On Android a tap asks for fullscreen and a landscape lock (`enterLandscape`); iPhones can't lock.
 - `src/wake.ts` keeps the screen on while the story plays (a wake lock, https only); the title and three minutes without input let go.
@@ -99,7 +100,7 @@ vite.config.ts   the dev server: its port, the texts endpoint, the workbench's a
 - `src/audio/settings.ts`: the volume (on a curve, louder on touch screens) and mute, kept by the game itself: Phaser's `sound.mute` reads wrong while the AudioContext is suspended.
 
 ## Save
-`src/save.ts`, guarded (the game works without storage): the settings, the story's step (a level starts over) and whether the story's been played through. No high scores.
+`src/save.ts`, guarded (the game works without storage): the settings, the story's step (a level starts over), whether the story's been played through and the gate's key. No high scores.
 
 ## Testing
 - `npm run check`: `tsc`, then the checkers in `tools/` (Map).

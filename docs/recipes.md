@@ -70,7 +70,7 @@ The art is baked from generators in `tools/art/` (helpers in `tools/art/lib/`; `
 
 - **By hand:** draw it as a draft, then copy it over the file in `public/assets/`, same size and layout (and drop its generator, or never `--force` it).
 - **A new image:** the PNG plus a manifest entry (`IMAGES`, or `SHEETS` with the frame size and `ANIMS`), named `<group>.<name>` after its folder. `npm run check:assets` reports missing, unlisted or mis-sized files.
-- **The page's pictures** (`tools/art/page.ts`) are made from the bird, the feather, the Meadow and the text `loading`: after changing one of those, `npm run bake:art -- --force page`.
+- **The page's pictures** (`tools/art/page.ts`) are made from the bird (and its sleeping frames, `napping` in `bird.ts`), the feather, the Meadow and the texts `loading` and `asleep.*`: after changing one of those, `npm run bake:art -- --force page`.
 
 ## Texts & Languages
 In a speech bubble, words between `~`s are struck through; a translation marks its own.

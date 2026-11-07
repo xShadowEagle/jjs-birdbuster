@@ -5,6 +5,8 @@ export const DE: Record<TextKey, string> = {
   'game.name': 'birdbuster',
 
   'loading': 'wird geladen...',
+  'asleep.napping': 'bobo macht ein nickerchen...',
+  'asleep.later': 'komm später wieder!',
   'rotate.turn': 'bitte gerät drehen',
   'rotate.fullscreen': 'oder für vollbild tippen',
 

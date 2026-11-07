@@ -13,35 +13,45 @@ import { initMusic } from './audio/music';
 import { initOrientation } from './orientation';
 import { initWake } from './wake';
 import { fitZoom, maxLossHere } from './scale';
-
-const game = new Phaser.Game({
-  ...BASE_CONFIG,
-  scale: { mode: Phaser.Scale.NONE, autoCenter: Phaser.Scale.CENTER_BOTH },
-  // a touch on the bars beside the canvas still only comes as POINTER_DOWN_OUTSIDE, which nothing listens to: the bars don't count
-  input: { activePointers: 3, touch: { target: document.body } },
-  scene: [Boot, Title, Language, Cutscene, Level, HUD, Credits],
-});
-
-initAudioSettings(game);
-initSfx(game);
-initMusic(game);
-
-const box = document.getElementById('game')!;
-function fit(): void {
-  const zoom = fitZoom(box.clientWidth, box.clientHeight, window.devicePixelRatio || 1, maxLossHere());
-  if (Math.abs(game.scale.zoom - zoom) > 1e-6) game.scale.setZoom(zoom);
-  else game.scale.refresh();                                               // same size: centre it in the new box
-}
-// The box, not just the window: after fullscreen a phone's address bar slides back in, and the resize event can come before it has.
-new ResizeObserver(fit).observe(box);
-window.addEventListener('resize', fit);
-fit();
-
-initOrientation(game);
-initWake();
+import { awake } from './gate';
 
 declare global { interface Window { game?: Phaser.Game } }
-if (import.meta.env.DEV) {
-  window.game = game;
-  void import('./dev/sidebar').then(m => m.initDevSidebar(game));
+
+if (awake()) start();
+else {
+  document.getElementById('loading')?.remove();
+  document.getElementById('asleep')!.hidden = false;
+}
+
+function start(): void {
+  const game = new Phaser.Game({
+    ...BASE_CONFIG,
+    scale: { mode: Phaser.Scale.NONE, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // a touch on the bars beside the canvas still only comes as POINTER_DOWN_OUTSIDE, which nothing listens to: the bars don't count
+    input: { activePointers: 3, touch: { target: document.body } },
+    scene: [Boot, Title, Language, Cutscene, Level, HUD, Credits],
+  });
+
+  initAudioSettings(game);
+  initSfx(game);
+  initMusic(game);
+
+  const box = document.getElementById('game')!;
+  function fit(): void {
+    const zoom = fitZoom(box.clientWidth, box.clientHeight, window.devicePixelRatio || 1, maxLossHere());
+    if (Math.abs(game.scale.zoom - zoom) > 1e-6) game.scale.setZoom(zoom);
+    else game.scale.refresh();                                             // same size: centre it in the new box
+  }
+  // The box, not just the window: after fullscreen a phone's address bar slides back in, and the resize event can come before it has.
+  new ResizeObserver(fit).observe(box);
+  window.addEventListener('resize', fit);
+  fit();
+
+  initOrientation(game);
+  initWake();
+
+  if (import.meta.env.DEV) {
+    window.game = game;
+    void import('./dev/sidebar').then(m => m.initDevSidebar(game));
+  }
 }

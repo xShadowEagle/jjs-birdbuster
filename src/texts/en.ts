@@ -4,6 +4,8 @@ export const EN = {
   'game.name': 'birdbuster',
 
   'loading': 'loading...',
+  'asleep.napping': 'bobo is napping...',
+  'asleep.later': 'come back later!',
   'rotate.turn': 'rotate your phone',
   'rotate.fullscreen': 'or tap for fullscreen',
 

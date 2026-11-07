@@ -1,6 +1,6 @@
-import { mix, type Img, type PixelFn, type Px } from './lib/pixels.ts';
+import { mix, paintSheet, type Img, type PixelFn, type Px } from './lib/pixels.ts';
 import { image, sheet } from './lib/assets.ts';
-import { beside, ell, fluffy, rell, rfluffy, segDist, tri } from './lib/shapes.ts';
+import { beside, ell, fluffy, noise, rell, rfluffy, segDist, tri } from './lib/shapes.ts';
 import { ANIMS, BIRD_FRAMES, SHEETS, TEAL_PLUCKED, type SheetKey } from '../../src/assets/manifest.ts';
 import { RIVAL_IDS } from '../../src/rivals.ts';
 import { SLIDE_HEADROOM } from '../../src/constants.ts';
@@ -11,10 +11,12 @@ import { FLO_COLOURS, JJ, OUTLINE, PLUMAGE, SWORD, type Plumage } from './palett
 type Pose = 'idle' | 'run' | 'jump' | 'glide' | 'slide' | 'hurt' | 'peck' | 'cleave' | 'dash' | 'brood' | 'show';
 /** bob: units down. tilt, tail (degrees) and eyes only count for brood and show. */
 interface Frame {
-  pose: Pose; bob: number; phase: number; tilt?: number; eyes?: 'open' | 'shut'; puff?: number; tail?: number;
+  pose: Pose; bob: number; phase: number; tilt?: number; eyes?: 'open' | 'shut' | 'sleep'; puff?: number; tail?: number;
   wing?: Feathers; far?: Feathers; held?: boolean; crest?: 'up' | 'swept' | 'low'; open?: boolean; head?: P;
   grip?: number;
   squint?: boolean;
+  nest?: boolean;
+  cap?: boolean;
   /** [near, far] */
   legs?: [Leg, Leg];
 }
@@ -303,7 +305,7 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
   const cx = strike ? 16 : 16.5, cy = (brood ? 31 : slide ? 30 : dash ? 23 : 24) + bob;
   const brx = brood ? 10.5 : 9.5, bry = brood ? 6.3 + puff : slide ? 5.8 : 6;
   const tilt = brood || show ? f.tilt ?? 0 : slide ? 8 : strike ? 7 : dash ? 5 : cleave ? 4 : windup ? -10 : -6;
-  const [hx, hy] = brood ? [cx + 9.5, cy - 12]
+  const [hx, hy] = brood ? [cx + 9.5 + headShift[0], cy - 12 + headShift[1]]
     : slide ? [cx + 12.5, cy - 3.5]
     : windup ? [cx + 9.5, cy - 13]
     : dash ? [cx + 13.5, cy - 6]
@@ -323,7 +325,7 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
   const [beak, beakUnder] = BEAK[windup || strike || open ? 'open' : pose === 'hurt' ? 'hurt' : 'shut'].map(fromHead);
   const crest = CREST[dash || slide || f.crest === 'low' ? 'low' : cleave ? 'flat' : windup || f.crest === 'up' ? 'up' : strike || f.crest === 'swept' ? 'swept' : 'plain'].map(fromHead);
   const stub = ([a, b, tip]: P[]): P[] => [a, b, [a[0] + (tip[0] - a[0]) * 0.3, a[1] + (tip[1] - a[1]) * 0.3]];
-  const spikes = plucked >= 3 ? crest.map(stub) : plucked >= 2 ? crest.slice(1) : crest;
+  const spikes = f.cap ? [] : plucked >= 3 ? crest.map(stub) : plucked >= 2 ? crest.slice(1) : crest;
   const neckX = cx + 6, neckY = cy - 1.5;
   const headAndNeck: Layer = (px, py) => {
     if (inTri(px, py, beak)) return C.beak;
@@ -332,6 +334,8 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
       if (segDist(px, py, hx + 0.4, hy - 2, hx + 2.4, hy - 0.8) < 0.6 || segDist(px, py, hx + 2.4, hy - 0.8, hx + 0.6, hy + 0.2) < 0.6) return OUTLINE;
     } else if ((brood || show) && eyes === 'shut') {
       if (segDist(px, py, hx + 0.2, hy - 0.9, hx + 1.2, hy - 1.9) < 0.55 || segDist(px, py, hx + 1.2, hy - 1.9, hx + 2.2, hy - 0.9) < 0.55) return OUTLINE;
+    } else if ((brood || show) && eyes === 'sleep') {
+      if (segDist(px, py, hx, hy - 1.8, hx + 1.2, hy - 1.1) < 0.55 || segDist(px, py, hx + 1.2, hy - 1.1, hx + 2.4, hy - 1.6) < 0.55) return OUTLINE;
     } else {
       const ex = Math.round(hx + 1), ey = Math.round(hy - 2), fx = Math.floor(px), fy = Math.floor(py);
       if (fx >= ex && fx <= ex + 1 && fy >= ey && fy <= ey + 2) {
@@ -378,10 +382,50 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
     return i % 2 ? C.light : C.body;
   };
 
+  const nest = f.nest ? nestFront(cx - 1, cy + 2.5) : none;
+  const cap = f.cap ? nightcap(hx, hy) : none;
+
   // front to back
   return (px, py, x, y) => wing.held(px, py) ?? wing.spread(px, py) ?? passenger.front(px, py) ?? jj(px, py) ?? passenger.back(px, py)
-    ?? headAndNeck(px, py) ?? nearLeg(px, py) ?? wing.folded(px, py) ?? pluckedSpots(px, py) ?? chestAndBody(px, py, x, y)
+    ?? nest(px, py) ?? cap(px, py) ?? headAndNeck(px, py) ?? nearLeg(px, py) ?? wing.folded(px, py) ?? pluckedSpots(px, py) ?? chestAndBody(px, py, x, y)
     ?? tailPlumes(px, py) ?? wing.far(px, py) ?? farLeg(px, py);
+}
+
+const NEST = { dark: 0x3a2618, twig: 0x5e3e24, mid: 0x7a5230, light: 0x9a6a3c };
+const CAP = { light: 0x8aa4ff, body: 0x5a7ae6, shade: 0x3a50b0, trim: 0xf6f6fa, trimShade: 0xcacad4 };
+
+/** The nest's front half, its rim at (x, y); the bird sits in it. */
+function nestFront(x: number, y: number): Layer {
+  const RX = 13.5, DEEP = 7;
+  const inBowl = (px: number, py: number) => py >= y - 0.5 && ell(px, py, x, y, RX, DEEP);
+  return (px, py) => {
+    if (!inBowl(px, py)) return null;
+    const fx = Math.floor(px), fy = Math.floor(py);
+    if (!inBowl(px, py - 1)) return noise(fx, 31) > 0.6 ? NEST.light : NEST.mid;
+    if (!inBowl(px, py - 2)) return noise(fx, 32) > 0.6 ? NEST.mid : NEST.twig;
+    const a = Math.floor((fx + fy * 1.6 + noise(Math.floor(fx / 3), 7) * 3) / 3) % 3, b = Math.floor((fx - fy * 1.4 + 200) / 4) % 3;
+    const c = a === 0 ? (b === 0 ? NEST.dark : NEST.twig) : b === 0 ? NEST.mid : NEST.light;
+    return !inBowl(px, py + 2) ? (c === NEST.light ? NEST.mid : NEST.dark) : c;
+  };
+}
+
+/** Flopping back from the crown of the head at (hx, hy), a pompom on the tip. */
+function nightcap(hx: number, hy: number): Layer {
+  const a: P = [hx - 0.5, hy - 7], ctrl: P = [hx - 5, hy - 12], tip: P = [hx - 9.5, hy - 5];
+  const at = (t: number): P => [0, 1].map(i => (1 - t) ** 2 * a[i] + 2 * (1 - t) * t * ctrl[i] + t * t * tip[i]) as P;
+  const inCone = (px: number, py: number) => {
+    for (let t = 0; t <= 1; t += 0.04) {
+      const [qx, qy] = at(t);
+      if (Math.hypot(px - qx, py - qy) < 3 * (1 - t) + 0.7) return true;
+    }
+    return false;
+  };
+  return (px, py) => {
+    if (Math.hypot(px - tip[0], py - tip[1]) < 1.9) return py > tip[1] + 0.5 ? CAP.trimShade : CAP.trim;
+    if (rell(px, py, hx - 0.6, hy - 5, 5, 1.2, -12)) return py > hy - 4.8 ? CAP.trimShade : CAP.trim;
+    if (!inCone(px, py) || (py > hy - 5 && px > hx - 5.5)) return null;                  // nothing under the brim: the eye shows
+    return !inCone(px, py - 1) ? CAP.light : !inCone(px, py + 1) ? CAP.shade : CAP.body;
+  };
 }
 
 const FRAMES: Frame[] = [
@@ -429,6 +473,18 @@ const bent = (dy: number): [Leg, Leg] => [{ heel: [-3, 4], ankle: [0.5, dy], pla
 const GROANS: Frame[] = [{ ...GROAN, bob: 3, legs: bent(7) }, { ...GROAN, bob: 2, legs: bent(8) }];
 /** The frame order is PAIR_FRAMES (the manifest). */
 const PAIR: Frame[] = [...FRAMES.slice(BIRD_FRAMES.idle[0], BIRD_FRAMES.run[1] + 1), ...GROANS];
+
+/** Puffed up per frame: one slow breath. */
+const BREATH = [0.3, 0.5, 0.8, 1, 1, 0.8, 0.5, 0.3];
+
+/** Bobo asleep in a nest, 40x40 frames: one breath. */
+export function napping(): Img {
+  return paintSheet([], 'napping', 40, 40, BREATH.map((puff): PixelFn => {
+    const nap: Frame = { pose: 'brood', bob: -2, phase: 0, eyes: 'sleep', puff, head: [0.5, 1], tail: 12 + puff * 4, nest: true, cap: true };
+    const fn = frame(nap, PLUMAGE.yellow, {});
+    return (x, y) => fn(x + 0.5, y + 0.5, x, y);
+  }), OUTLINE);
+}
 
 function birdSheet(out: Img[], key: SheetKey, look: Plumage, frames: Frame[], extras: Extras = {}): Img {
   const { w, h } = SHEETS[key], k = h / 40, dx = (w - h) / (2 * k);

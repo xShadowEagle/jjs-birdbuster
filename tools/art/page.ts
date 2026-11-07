@@ -4,7 +4,8 @@ import { GAME_H, GAME_W, GROUND_Y } from '../../src/constants.ts';
 import { UI } from '../../src/ui/colors.ts';
 import { BIOMES } from '../../src/world/biomes.ts';
 import { drawText, textWidth } from '../../src/ui/font.ts';
-import { inEvery } from '../../src/language.ts';
+import { LANGUAGES, TEXTS, inEvery } from '../../src/language.ts';
+import { napping } from './bird.ts';
 import { pixelsOf } from './lib/assets.ts';
 import { mix, type Img, type Pixels, type Px } from './lib/pixels.ts';
 
@@ -125,6 +126,36 @@ function loadingWords(): Canvas {
   return c;
 }
 
+/** The z's: [x, y, size, first frame, last frame], drifting up a pixel every other frame. */
+const ZS: [number, number, number, number, number][] = [[34, 11, 4, 1, 5], [39, 5, 5, 2, 6], [45, 0, 6, 3, 7]];
+const zGlyph = (n: number) => Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => y === 0 || y === n - 1 || x === n - 2 - (y - 1)));
+
+/** Bobo asleep, a strip of 72x44 frames: the page shows it until the game opens. */
+function asleep(): Canvas {
+  const W = 72, H = 44, bird = napping(), frames = bird.w / 40;
+  const LEFT = 20;                                         // the nest (x 0 to 30 in the bird's frame) in the middle, under the words
+  const c = new Canvas(W * frames, H);
+  for (let i = 0; i < frames; i++) {
+    c.blit(bird, i * W + LEFT, H - 40, i * 40, 0, 40, 40);
+    for (const [x, y, n, from, to] of ZS) {
+      if (i < from || i > to) continue;
+      const g = zGlyph(n), dy = (i - from) >> 1;
+      g.forEach((row, gy) => row.forEach((on, gx) => { if (on) c.set(i * W + LEFT + x + gx, y - dy + gy + 2, i === to ? UI.dim : UI.text); }));
+    }
+  }
+  return c;
+}
+
+/** German on top, as the loading words. */
+function asleepWords(): Canvas {
+  const LINE = 12, GAP = 6;
+  const blocks = LANGUAGES.map(l => [TEXTS[l.id]['asleep.napping'], TEXTS[l.id]['asleep.later']]);
+  const w = Math.max(...blocks.flat().map(l => textWidth(l))) + 2;
+  const c = new Canvas(w, blocks.length * 2 * LINE + (blocks.length - 1) * GAP);
+  blocks.forEach((lines, b) => lines.forEach((l, i) => c.text(l, 1 + ((w - 2 - textWidth(l)) >> 1), 1 + b * (2 * LINE + GAP) + i * LINE, UI.text)));
+  return c;
+}
+
 /** A phone's home screen icon stays square: phones round it themselves. */
 export function makePage(out: Img[]): void {
   const push = (file: string, c: Canvas) => out.push({ file, w: c.w, h: c.h, px: c.px });
@@ -137,4 +168,6 @@ export function makePage(out: Img[]): void {
   push(PAGE_IMAGES['page.touch_icon'], touch);
   push(PAGE_IMAGES['page.preview'], preview(out));
   push(PAGE_IMAGES['page.loading'], loadingWords());
+  push(PAGE_IMAGES['page.asleep'], asleep());
+  push(PAGE_IMAGES['page.asleep_words'], asleepWords());
 }
