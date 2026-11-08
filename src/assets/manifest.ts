@@ -132,6 +132,7 @@ export const PAGE_IMAGES = {
   'page.icon': 'page/icon.png',
   'page.touch_icon': 'page/touch_icon.png',
   'page.preview': 'page/preview.png',
+  'page.banner': 'page/banner.png',
   'page.loading': 'page/loading.png',
   'page.asleep': 'page/asleep.png',
   'page.asleep_words': 'page/asleep_words.png',

@@ -88,8 +88,22 @@ function bird(out: Img[], c: Canvas, n: number, x: number, y: number): Canvas {
   return c.blit(pixelsOf(out, 'char.bird_solo'), x - w / 2, y - h, n * w, 0, w, h);
 }
 
-/** 1200x630: what chats ask for. */
+/** 1200x632: what chats ask for. WhatsApp shows only its middle square, which holds the title and Bobo. */
 function preview(out: Img[]): Canvas {
+  const K = 8, w = 150, h = 79;
+  const c = meadow(out, 246);
+  const x0 = 100, y0 = GROUND_Y + 9 - h, mid = x0 + w / 2;
+  scrim(c, y0 - 3, y0 + 39, 0.45);
+  const left = mid - Math.round(textWidth('BIRDBUSTER') / 2);
+  c.text('BIRDBUSTER', left, y0 + 19, UI.gold).text("JJ'S", left + 1, y0 + 9, UI.text);
+  const feather = pixelsOf(out, 'item.feather');
+  for (const [x, up] of [[-29, 24], [29, 13]]) c.blit(feather, mid + x - 8, GROUND_Y - up - 8);
+  bird(out, c, IDLE, mid + 1, GROUND_Y);                  // +1: tail to beak centred
+  return c.part(x0, y0, w, h).scaled(K);
+}
+
+/** 1200x630: the README's picture. */
+function banner(out: Img[]): Canvas {
   const K = 10, w = 1200 / K, h = 630 / K;
   const c = meadow(out, 246);
   const x0 = 100, y0 = GROUND_Y + 9 - h;
@@ -167,6 +181,7 @@ export function makePage(out: Img[]): void {
   for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) touch.px[y * SIZE + x] = big.px[near(y) * big.w + near(x)];
   push(PAGE_IMAGES['page.touch_icon'], touch);
   push(PAGE_IMAGES['page.preview'], preview(out));
+  push(PAGE_IMAGES['page.banner'], banner(out));
   push(PAGE_IMAGES['page.loading'], loadingWords());
   push(PAGE_IMAGES['page.asleep'], asleep());
   push(PAGE_IMAGES['page.asleep_words'], asleepWords());

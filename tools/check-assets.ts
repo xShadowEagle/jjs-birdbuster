@@ -17,10 +17,10 @@ const need = (file: string, what: string): boolean => {
 };
 
 for (const [key, file] of Object.entries(IMAGES)) need(file, `image '${key}'`);
-const html = readFileSync('index.html', 'utf8');
+const html = readFileSync('index.html', 'utf8'), readme = readFileSync('README.md', 'utf8');
 for (const [key, file] of Object.entries(PAGE_IMAGES)) {
   need(file, `page image '${key}'`);
-  if (file.startsWith('page/') && !html.includes(`/assets/${file}"`)) errors.push(`index.html doesn't name assets/${file} (page image '${key}')`);
+  if (file.startsWith('page/') && !html.includes(`/assets/${file}"`) && !readme.includes(`assets/${file}`)) errors.push(`neither index.html nor README.md names assets/${file} (page image '${key}')`);
 }
 const frames: Record<string, number> = {};
 for (const [key, s] of Object.entries(SHEETS)) {
