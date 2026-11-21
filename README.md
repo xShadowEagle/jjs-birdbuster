@@ -8,4 +8,4 @@ A short pixel-art autorunner. Web, phone-landscape first, playable on a computer
 
 All rights reserved: No licence is given to reuse the code, art, characters, story or texts.
 
-Third-party art, music and code, and their licences: `public/licenses.txt`
+Third-party art, music and code, and their licences: [`public/licenses.txt`](public/licenses.txt)

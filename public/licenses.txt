@@ -1,4 +1,4 @@
-JJ's BirdBuster: third-party licenses
+JJ's BirdBuster: Third-party licenses
 =====================================
 
 The game's script bundles Phaser 4 (https://phaser.io), under the MIT License:
