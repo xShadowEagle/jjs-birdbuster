@@ -9,7 +9,7 @@ import { LANGUAGES, type LanguageId } from '../src/language';
 import { SPEAKERS } from '../tools/text-rules';
 
 export const BIOME_IDS = Object.keys(BIOMES) as BiomeId[];
-export const VIEW_IDS = ['scene', 'sheet', 'breaks', 'interface', 'enemies', 'attacks', 'sounds', 'texts'] as const;
+export const VIEW_IDS = ['scene', 'sheet', 'breaks', 'interface', 'enemies', 'attacks', 'sounds', 'texts', 'asleep'] as const;
 export type View = (typeof VIEW_IDS)[number];
 
 export const PRESS = ['Idle', 'Pressed', 'Cooling', 'Rainbow', 'Hint'] as const;
@@ -19,12 +19,20 @@ type Press = (typeof PRESS)[number];
 export const SWING_ICONS = ['Peck', 'Cleave'] as const;
 export const POSES = ['Run', 'Slide'] as const;
 type Pose = (typeof POSES)[number];
+/** In CSS px: the sizes the page's media queries see. */
+export const SCREENS = [
+  ['phone', 'Phone', 844, 390], ['upright', 'Phone Upright', 390, 844], ['tablet', 'Tablet', 1024, 768], ['laptop', 'Laptop', 1440, 900],
+  ['desktop', 'Desktop', 1920, 1080],
+] as const;
+type Screen = (typeof SCREENS)[number][0];
+export const SLEEPS = [['deep', 'Fast Asleep'], ['nap', 'Napping']] as const;
+type Sleep = (typeof SLEEPS)[number][0];
 
 // the fields are the hash's parameters by name: renaming one breaks bookmarks
 interface State {
   image: string; biome: BiomeId; anim: string; zoom: number; view: View; press: Press; swing: (typeof SWING_ICONS)[number]; pose: Pose;
   foe: Foe; attack: Attack; target: Foe | ''; boxes: boolean; sound: boolean; sfx: string; run: boolean; pick: number;
-  text: TextKey; lang: LanguageId; only: Shown;
+  text: TextKey; lang: LanguageId; only: Shown; screen: Screen; sleep: Sleep;
 }
 
 const fromHash = (): State => {
@@ -50,6 +58,8 @@ const fromHash = (): State => {
     text: (hash.get('text') ?? '') in EN ? hash.get('text') as TextKey : [...SPEAKERS.keys()][0],
     lang: LANGUAGES.find(l => l.id === hash.get('lang'))?.id ?? 'de',
     only: SHOWN.find(([k]) => k === hash.get('only'))?.[0] ?? SHOWN[0][0],
+    screen: SCREENS.find(([k]) => k === hash.get('screen'))?.[0] ?? SCREENS[0][0],
+    sleep: SLEEPS.find(([k]) => k === hash.get('sleep'))?.[0] ?? SLEEPS[0][0],
   };
 };
 export const state = fromHash();

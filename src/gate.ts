@@ -1,7 +1,9 @@
-import { savedKey, saveKey } from './save';
+import { savedKey, saveKey, savedWoken } from './save';
 
-/** Midnight on the player's device (month 11: December). */
-const OPENS = new Date(2026, 11, 4);
+/** Midnight on the player's device (month 11: December): from then, five pokes wake Bobo. */
+const NAPS = new Date(2026, 11, 4);
+/** From then the game opens by itself. */
+const OPENS = new Date(2026, 11, 5);
 /** keyHash() of the secret link's `?key=`: before OPENS, it opens the game on that device for good. Empty: no key works. */
 const KEY: string = '15ju43u32le';
 
@@ -18,9 +20,15 @@ export function keyHash(key: string): string {
   return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
 }
 
-/** Whether the game may start: the dev build always does. */
-export function awake(): boolean {
-  if (import.meta.env.DEV) return true;
+/** open: the game may start. asleep: Bobo sleeps until NAPS. napping: five pokes wake him. */
+export type Gate = 'open' | 'asleep' | 'napping';
+
+/** The dev build is always open, except at `?asleep` (or `?asleep=nap`). */
+export function gate(): Gate {
+  if (import.meta.env.DEV) {
+    const asked = new URLSearchParams(location.search).get('asleep');
+    return asked === null ? 'open' : asked === 'nap' ? 'napping' : 'asleep';
+  }
   const url = new URL(location.href), key = url.searchParams.get('key');
   const opened = KEY !== '' && key !== null && keyHash(key) === KEY;
   if (key !== null) {
@@ -28,5 +36,7 @@ export function awake(): boolean {
     history.replaceState(history.state, '', url);
   }
   if (opened) saveKey(KEY);
-  return opened || Date.now() >= OPENS.getTime() || (KEY !== '' && savedKey() === KEY);
+  const now = Date.now();
+  if (opened || now >= OPENS.getTime() || (KEY !== '' && savedKey() === KEY) || savedWoken()) return 'open';
+  return now >= NAPS.getTime() ? 'napping' : 'asleep';
 }

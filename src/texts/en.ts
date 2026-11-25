@@ -4,10 +4,13 @@ export const EN = {
   'game.name': 'birdbuster',
 
   'loading': 'loading...',
-  'asleep.napping': 'bobo is napping...',
+  'asleep.deep': 'bobo is fast asleep...',
   'asleep.later': 'come back later!',
+  'asleep.napping': 'bobo is napping...',
+  'asleep.poke': 'poke him awake!',
   'console.hello': 'Kweh! Curious, huh? Nothing in here but code.',
   'console.asleep': 'Trying to wake Bobo early? Nice try.',
+  'console.napping': "He's only napping. Poke him.",
   'rotate.turn': 'rotate your phone',
   'rotate.fullscreen': 'or tap for fullscreen',
 

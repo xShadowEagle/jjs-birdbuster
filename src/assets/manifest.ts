@@ -136,6 +136,9 @@ export const PAGE_IMAGES = {
   'page.loading': 'page/loading.png',
   'page.asleep': 'page/asleep.png',
   'page.asleep_words': 'page/asleep_words.png',
+  'page.napping_words': 'page/napping_words.png',
+  'page.poked': 'page/poked.png',
+  'page.waking': 'page/waking.png',
 } as const;
 
 export const BIRD_FRAMES = {

@@ -33,7 +33,8 @@ The panel lists the keys each view uses.
 - **attacks:** the bird's moves, into the air or at a target, with the game's hits, effects and sounds.
 - **sounds:** every sound effect, played and drawn as its tones over time.
 - **texts:** every text in English and German, shown as the game shows it. It saves only when opened on this computer (localhost), not over the network.
+- **asleep:** the page's asleep screen, fast asleep or napping (the game's page at `/?asleep` or `/?asleep=nap`), as a phone, a tablet or a computer shows it: its size rules pick how big the art is. Napping, poke him with the mouse: the fifth wakes him and the game starts in the frame; Space puts him back to sleep.
 
-In the enemies and attacks views a version is a draft set: its drafts stand in for the game's images.
+In the enemies, attacks and asleep views a version is a draft set: its drafts stand in for the game's images.
 
-Keys: Up/Down Image (Enemy, Target, Sound, Text); Left/Right Biome; A Animation (Attack); W the enemy's attack; Q/E Version; 1 to 4 Size; V View; Space Run (sounds: Play).
+Keys: Up/Down Image (Enemy, Target, Sound, Text, Screen); Left/Right Biome; A Animation (Attack, Sleep); W the enemy's attack; Q/E Version; 1 to 4 Size; V View; Space Run (sounds: Play; asleep: Again).

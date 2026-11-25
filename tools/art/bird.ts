@@ -10,17 +10,21 @@ import { FLO_COLOURS, JJ, OUTLINE, PLUMAGE, SWORD, type Plumage } from './palett
 
 type Pose = 'idle' | 'run' | 'jump' | 'glide' | 'slide' | 'hurt' | 'peck' | 'cleave' | 'dash' | 'brood' | 'show';
 /** bob: units down. tilt, tail (degrees) and eyes only count for brood and show. */
-interface Frame {
+export interface Frame {
   pose: Pose; bob: number; phase: number; tilt?: number; eyes?: 'open' | 'shut' | 'sleep'; puff?: number; tail?: number;
   wing?: Feathers; far?: Feathers; held?: boolean; crest?: 'up' | 'swept' | 'low'; open?: boolean; head?: P;
   grip?: number;
   squint?: boolean;
-  nest?: boolean;
-  cap?: boolean;
+  /** the nest's rim */
+  nest?: P;
+  /** the nest's back too: it shows once he's out of it */
+  empty?: boolean;
+  /** on the head, or off it: its anchor (where the head would be) */
+  cap?: true | P;
   /** [near, far] */
   legs?: [Leg, Leg];
 }
-type P = [number, number];
+export type P = [number, number];
 /** [degrees up from straight back, length] each, back to front */
 type Feathers = [number, number][];
 /** heel and ankle: from the hip */
@@ -325,7 +329,7 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
   const [beak, beakUnder] = BEAK[windup || strike || open ? 'open' : pose === 'hurt' ? 'hurt' : 'shut'].map(fromHead);
   const crest = CREST[dash || slide || f.crest === 'low' ? 'low' : cleave ? 'flat' : windup || f.crest === 'up' ? 'up' : strike || f.crest === 'swept' ? 'swept' : 'plain'].map(fromHead);
   const stub = ([a, b, tip]: P[]): P[] => [a, b, [a[0] + (tip[0] - a[0]) * 0.3, a[1] + (tip[1] - a[1]) * 0.3]];
-  const spikes = f.cap ? [] : plucked >= 3 ? crest.map(stub) : plucked >= 2 ? crest.slice(1) : crest;
+  const spikes = f.cap === true ? [] : plucked >= 3 ? crest.map(stub) : plucked >= 2 ? crest.slice(1) : crest;
   const neckX = cx + 6, neckY = cy - 1.5;
   const headAndNeck: Layer = (px, py) => {
     if (inTri(px, py, beak)) return C.beak;
@@ -382,13 +386,14 @@ function frame(f: Frame, C: Plumage, { rider = false, flo = false, plucked = 0 }
     return i % 2 ? C.light : C.body;
   };
 
-  const nest = f.nest ? nestFront(cx - 1, cy + 2.5) : none;
-  const cap = f.cap ? nightcap(hx, hy) : none;
+  const nest = f.nest ? nestFront(...f.nest) : none;
+  const nestBack = f.nest && f.empty ? nestHollow(...f.nest) : none;
+  const cap = f.cap === true ? nightcap(hx, hy) : f.cap ? nightcap(...f.cap) : none;
 
   // front to back
   return (px, py, x, y) => wing.held(px, py) ?? wing.spread(px, py) ?? passenger.front(px, py) ?? jj(px, py) ?? passenger.back(px, py)
     ?? nest(px, py) ?? cap(px, py) ?? headAndNeck(px, py) ?? nearLeg(px, py) ?? wing.folded(px, py) ?? pluckedSpots(px, py) ?? chestAndBody(px, py, x, y)
-    ?? tailPlumes(px, py) ?? wing.far(px, py) ?? farLeg(px, py);
+    ?? tailPlumes(px, py) ?? wing.far(px, py) ?? farLeg(px, py) ?? nestBack(px, py);
 }
 
 const NEST = { dark: 0x3a2618, twig: 0x5e3e24, mid: 0x7a5230, light: 0x9a6a3c };
@@ -406,6 +411,18 @@ function nestFront(x: number, y: number): Layer {
     const a = Math.floor((fx + fy * 1.6 + noise(Math.floor(fx / 3), 7) * 3) / 3) % 3, b = Math.floor((fx - fy * 1.4 + 200) / 4) % 3;
     const c = a === 0 ? (b === 0 ? NEST.dark : NEST.twig) : b === 0 ? NEST.mid : NEST.light;
     return !inBowl(px, py + 2) ? (c === NEST.light ? NEST.mid : NEST.dark) : c;
+  };
+}
+
+/** The nest's back rim and hollow, behind the bird, for the rim at (x, y). */
+function nestHollow(x: number, y: number): Layer {
+  const RX = 13.5, UP = 2.6;
+  const inBack = (px: number, py: number) => py < y + 1 && ell(px, py, x, y, RX - 0.5, UP);
+  return (px, py) => {
+    if (!inBack(px, py)) return null;
+    const fx = Math.floor(px);
+    if (!inBack(px, py - 1)) return noise(fx, 33) > 0.6 ? NEST.mid : NEST.twig;
+    return NEST.dark;
   };
 }
 
@@ -477,12 +494,18 @@ const PAIR: Frame[] = [...FRAMES.slice(BIRD_FRAMES.idle[0], BIRD_FRAMES.run[1] +
 /** Puffed up per frame: one slow breath. */
 const BREATH = [0.3, 0.5, 0.8, 1, 1, 0.8, 0.5, 0.3];
 
-/** Bobo asleep in a nest, 40x40 frames: one breath. */
-export function napping(): Img {
-  return paintSheet([], 'napping', 40, 40, BREATH.map((puff): PixelFn => {
-    const nap: Frame = { pose: 'brood', bob: -2, phase: 0, eyes: 'sleep', puff, head: [0.5, 1], tail: 12 + puff * 4, nest: true, cap: true };
-    const fn = frame(nap, PLUMAGE.yellow, {});
-    return (x, y) => fn(x + 0.5, y + 0.5, x, y);
+/** Where the nest's rim is when Bobo naps in it. */
+export const NEST_RIM: P = [15.5, 31.5];
+export const NAP: Frame = { pose: 'brood', bob: -2, phase: 0, eyes: 'sleep', puff: 0.5, head: [0.5, 1], tail: 14, nest: NEST_RIM, cap: true };
+
+/** Bobo asleep in the nest: one breath. */
+export const NAPPING: Frame[] = BREATH.map(puff => ({ ...NAP, puff, tail: 12 + puff * 4 }));
+
+/** Bobo in frames of w x h, the 40 px frame's corner at (left, top) in each: he and his cap may reach out of it. */
+export function boboStrip(name: string, frames: Frame[], w: number, h: number, left: number, top: number): Img {
+  return paintSheet([], name, w, h, frames.map((f): PixelFn => {
+    const fn = frame(f, PLUMAGE.yellow, {});
+    return (x, y) => fn(x - left + 0.5, y - top + 0.5, x - left, y - top);
   }), OUTLINE);
 }
 

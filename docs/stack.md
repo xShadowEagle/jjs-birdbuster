@@ -6,6 +6,8 @@ How the game is put together. Adding things: docs/recipes.md.
 The folders, and the files a name doesn't explain.
 ```
 src/
+  main.ts        the entry, kept small: asks the gate, then shows the loading or the asleep screen
+  game.ts        start(): the game, Phaser and all, a chunk of its own that main.ts loads once the gate lets it start
   config.ts      the game config the workbench shares
   constants.ts   tuning values (PLAYER, SWINGS, DASH, TOUCH), BIRD_BOX, BIRD_SCREEN_X, DEPTH, BUBBLE, the tables the art shares (BRICK, DIG_FLOOR)
   events.ts      Level-to-HUD events (LevelEvents, emitLevel), until(): listeners dropped at shutdown
@@ -43,9 +45,9 @@ vite.config.ts   the dev server: its port, the texts endpoint, the workbench's a
 
 ## Display
 - 400x225, `pixelArt`, `roundPixels`. `fitZoom` (`src/scale.ts`, the workbench's too): on desktop a whole number of device pixels per game pixel (a plain fit if that wastes over 20% of the window); on touch screens it fills the screen unless a crisp fit loses at most 3%.
-- The loading screen is plain HTML and CSS in `index.html`, there before the script: the running bird, the word in every language (`page.loading`) and a bar that `Boot` fills; `Boot` removes it when the title is up.
-- The gate (`src/gate.ts`): the build opens at `OPENS`, midnight on the player's device. Before that `main.ts` doesn't start the game and shows `#asleep` from `index.html` instead: Bobo napping (`page.asleep`, eight frames) and the words `asleep.*` (`page.asleep_words`). The secret link `?key=...` opens it on a device for good: its hash is `KEY`, kept in the save; the link loses the key at once. A new key's hash: `node --import ./tools/resolve-ts.ts -e "import('./src/gate.ts').then(g => console.log(g.keyHash('the key')))"`. The dev build never locks; `npm run preview` does.
-- `src/hello.ts`: in a build, the browser's console shows Bobo in ASCII art, awake or (while the gate is shut) asleep in the nest, and a line in every language (`console.hello` / `console.asleep`).
+- The loading screen is plain HTML and CSS in `index.html`, hidden until `main.ts` has asked the gate (so it never flashes before the asleep screen), then shown while the game's chunk and its pictures load: the running bird, the word in every language (`page.loading`) and a bar that `Boot` fills; `Boot` removes it when the title is up.
+- The gate (`src/gate.ts`): until `NAPS`, midnight on the player's device, `main.ts` doesn't load the game and shows `#asleep` from `index.html` instead: Bobo napping (`page.asleep`, eight frames) and the words `asleep.deep` / `asleep.later` (`page.asleep_words`). From `NAPS` the same screen says `asleep.napping` / `asleep.poke` (`page.napping_words`), and `src/asleep.ts` counts pokes (pointerup, anywhere): one counts only once the twitch from the last is over (`TWITCH`, as long as index.html's), the fifth plays the waking (`page.poked`: a row of four frames for each of the first four pokes; `page.waking`) and starts the game, kept in the save; the game's chunk loads while he's poked. That poke also makes the game's AudioContext, so the title's music plays without another tap. From `OPENS`, a day later, the game opens by itself. The secret link `?key=...` opens it on a device for good: its hash is `KEY`, kept in the save; the link loses the key at once. A new key's hash: `node --import ./tools/resolve-ts.ts -e "import('./src/gate.ts').then(g => console.log(g.keyHash('the key')))"`. The dev build never locks, except at `/?asleep` and `/?asleep=nap` (the workbench's Asleep view); `npm run preview` does.
+- `src/hello.ts`: in a build, the browser's console shows Bobo in ASCII art, awake or (while the gate is shut) asleep in the nest, and a line in every language (`console.hello`, `console.asleep`, `console.napping`).
 - The page's head: the icons, the link's preview (`og:` tags, the picture by its whole hosted address) and `noindex`. The pictures are `PAGE_IMAGES`, baked by `tools/art/page.ts`; `check:assets` wants each named in the head, or in README.md (the banner). WhatsApp shows only the preview's middle square: the title and Bobo stay in it.
 - Portrait on a touch screen: the rotate overlay (`src/orientation.ts`, plain DOM). It swallows input and emits `GameEvent.Blocked` / `Unblocked`: a level pauses, a cutscene and the credits freeze (`freezeWhileBlocked`). On Android a tap asks for fullscreen and a landscape lock (`enterLandscape`); iPhones can't lock.
 - `src/wake.ts` keeps the screen on while the story plays (a wake lock, https only); the title and three minutes without input let go.
@@ -101,7 +103,7 @@ vite.config.ts   the dev server: its port, the texts endpoint, the workbench's a
 - `src/audio/settings.ts`: the volume (on a curve, louder on touch screens) and mute, kept by the game itself: Phaser's `sound.mute` reads wrong while the AudioContext is suspended.
 
 ## Save
-`src/save.ts`, guarded (the game works without storage): the settings, the story's step (a level starts over), whether the story's been played through and the gate's key. No high scores.
+`src/save.ts`, guarded (the game works without storage): the settings, the story's step (a level starts over), whether the story's been played through, the gate's key and whether Bobo was poked awake. No high scores.
 
 ## Testing
 - `npm run check`: `tsc`, then the checkers in `tools/` (Map).

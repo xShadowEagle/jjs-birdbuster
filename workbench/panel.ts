@@ -6,12 +6,13 @@ import { SOUNDS, SOUND_GROUPS, showSound } from './sounds';
 import { GROUPS, KEYS, LANGS, goTo, groupHasTodo, showText, shownCount, stepText, todoIn } from './texts';
 import { languageName } from '../src/language';
 import {
-  BIOME_IDS, POSES, PRESS, SHOWN, SWING_ICONS, VIEW_IDS, asset, benchImages, changed, countVersionsWith, inPlace, onChange, oneAtATime, pickImage,
+  BIOME_IDS, POSES, PRESS, SCREENS, SHOWN, SLEEPS, SWING_ICONS, VIEW_IDS, asset, benchImages, changed, countVersionsWith, inPlace, onChange, oneAtATime, pickImage,
   state, type View,
 } from './state';
 import { lineUp, sheets } from './views/images';
 import { showBreaks, showInterface } from './views/interface';
 import { AttacksRun, EnemiesRun, type RunView } from './views/run';
+import { asleepVersions, sleepAgain } from './views/asleep';
 
 const panel = document.getElementById('panel')!;
 const el = <K extends keyof HTMLElementTagNameMap>(tag: K, text = '', parent: HTMLElement = panel) => {
@@ -42,7 +43,7 @@ const versionButtons = (names: string[]) => {
 const kindButtons = (f: Family, shown: Foe | '', pick: (s: Foe) => void) =>
   buttons(f.kinds.map(([s, name]) => [name, shown === s, () => pick(s)]));
 
-const step = <T>(list: T[], at: number, by: number) => list[(at + by + list.length) % list.length];
+const step = <T>(list: readonly T[], at: number, by: number) => list[(at + by + list.length) % list.length];
 const nextFamily = (list: Family[], foe: Foe | '', by: number) => step(list, list.indexOf(familyOf(list, foe)), by).kinds[0]?.[0] ?? '';
 const nextKind = (list: Family[], foe: Foe | '') => {
   const kinds = familyOf(list, foe).kinds;
@@ -70,7 +71,8 @@ interface ViewDef {
   keyA?: Key;
   keyW?: Key;
   zoom?: true;
-  space?: 'Run' | 'Play';
+  space?: 'Run' | 'Play' | 'Again';
+  onSpace?: () => void;
   moreKeys?: [string, string][];
   versions?: () => string[];
   aboveBiome?: () => void;
@@ -215,6 +217,25 @@ export const VIEWS: Record<View, ViewDef> = {
     title: () => `${state.text}  -  ${languageName(state.lang)}`,
     show: showText,
   },
+  asleep: {
+    name: 'Asleep',
+    upDown: ['Screen', by => { state.screen = step(SCREENS, SCREENS.findIndex(([id]) => id === state.screen), by)[0]; }],
+    keyA: ['Sleep', () => {
+      state.sleep = step(SLEEPS, SLEEPS.findIndex(([id]) => id === state.sleep), 1)[0];
+      return true;
+    }],
+    space: 'Again',
+    onSpace: sleepAgain,
+    versions: asleepVersions,
+    panel: () => {
+      el('h2', 'Sleep');
+      buttons([...SLEEPS.map(([id, name]) => [name, state.sleep === id, () => { state.sleep = id; }] as Button), ['Again', false, sleepAgain]]);
+      el('h2', 'Screen');
+      buttons(SCREENS.map(([id, name]) => [name, state.screen === id, () => { state.screen = id; }]));
+      versionButtons(asleepVersions());
+    },
+    title: () => 'Asleep',
+  },
 };
 const versionCount = () => VIEWS[state.view].versions?.().length ?? 1;
 
@@ -265,7 +286,7 @@ function onKey(e: KeyboardEvent): void {
       break;
     }
     case 'v': case 'V': state.view = VIEW_IDS[(VIEW_IDS.indexOf(v) + 1) % VIEW_IDS.length]; state.pick = 0; break;
-    case ' ': if (!view.space) return; if (view.space === 'Run') state.run = !state.run; break;
+    case ' ': if (!view.space) return; if (view.space === 'Run') state.run = !state.run; view.onSpace?.(); break;
     case '1': case '2': case '3': case '4': if (!view.zoom) return; state.zoom = Number(e.key); break;
     default: return;
   }

@@ -8,7 +8,7 @@
     html, body { margin: 0; height: 100%; background: #0b0a12; color: #fff8e0; font: 12px/1.4 ui-monospace, Consolas, monospace; }
     body { display: flex; overflow: hidden; }
     #panel { width: 220px; flex: none; box-sizing: border-box; padding: 10px; overflow-y: auto; background: #1a1020; border-right: 1px solid #3a3050; }
-    #stage { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    #stage { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; }
     #game { flex: 1; min-height: 0; padding: 12px; display: flex; align-items: center; justify-content: center; }
     canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
     h1 { font-size: 12px; color: #ffd35a; margin: 0 0 8px; letter-spacing: 1px; }
@@ -37,6 +37,11 @@
     .status { font-size: 11px; color: #8a7f9a; min-height: 14px; }
     .status.bad { color: #ff7070; }
     .status.saved { color: #7bd88f; }
+    #asleep { display: none; position: absolute; inset: 0; z-index: 2; padding: 12px; box-sizing: border-box; background: #0b0a12; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+    body.asleep #asleep { display: flex; }
+    #asleep .screen { flex: none; overflow: hidden; outline: 1px solid #3a3050; }
+    #asleep iframe { display: block; border: 0; transform-origin: 0 0; }
+    #asleep .caption { color: #cfc3a0; min-height: 1.4em; white-space: pre; }
   </style>
 </head>
 <body>
@@ -44,6 +49,7 @@
   <div id="stage">
     <main id="game"></main>
     <section id="texts"></section>
+    <section id="asleep"><div class="screen"><iframe title="The asleep screen"></iframe></div><div class="caption"></div></section>
   </div>
   <script type="module" src="./main.ts"></script>
 </body>

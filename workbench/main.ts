@@ -6,8 +6,10 @@ import { initAudioSettings } from '../src/audio/settings';
 import Bench from './bench';
 import { initPanel } from './panel';
 import { initTexts } from './texts';
+import { initAsleep } from './views/asleep';
 
 initTexts();
+initAsleep();
 initPanel();
 
 const game = new Phaser.Game({ ...BASE_CONFIG, scale: { mode: Phaser.Scale.NONE }, scene: [Bench] });

@@ -36,11 +36,19 @@
     #loading .bar i { display: block; width: 0; height: 100%; background: #ffd35a; }
     @media (min-height: 600px) { #loading { --k: 4; } }
     @media (min-height: 1000px) { #loading { --k: 6; } }
-    #asleep[hidden] { display: none; }
+    #loading[hidden], #asleep[hidden], #asleep [hidden] { display: none; }
     #asleep { --k: 2; }
-    #asleep .bird { width: calc(72px * var(--k)); height: calc(44px * var(--k)); overflow: hidden; }
-    #asleep .bird img { height: 100%; animation: nap 2.4s steps(8) infinite; }
+    #asleep.napping { cursor: pointer; }
+    #asleep .bird { position: relative; width: calc(72px * var(--k)); height: calc(44px * var(--k)); overflow: hidden; }
+    #asleep .bird img { position: absolute; top: 0; left: 0; height: 100%; }
+    #asleep .bird .asleep { animation: nap 2.4s steps(8) infinite; }
     @keyframes nap { to { transform: translateX(calc(-576px * var(--k))); } }
+    #asleep .bird .poked, #asleep .bird .waking, #asleep .bird.poked .asleep, #asleep .bird.waking .asleep { visibility: hidden; }
+    #asleep .bird .poked { height: 400%; top: calc(-44px * var(--k) * var(--row, 0)); }
+    #asleep .bird.poked .poked { visibility: visible; animation: poked 0.4s steps(4, jump-none) forwards; }
+    @keyframes poked { to { transform: translateX(calc(-216px * var(--k))); } }
+    #asleep .bird.waking .waking { visibility: visible; animation: waking 1.5s steps(12, jump-none) forwards; }
+    @keyframes waking { to { transform: translateX(calc(-792px * var(--k))); } }
     #asleep .words { height: calc(54px * var(--k)); }
     @media (min-width: 560px) and (min-height: 350px) { #asleep { --k: 3; } }
     @media (min-width: 760px) and (min-height: 600px) { #asleep { --k: 4; } }
@@ -49,14 +57,19 @@
 </head>
 <body>
   <div id="game"></div>
-  <div id="loading">
+  <div id="loading" hidden>
     <div class="bird"><img src="/assets/characters/bird_solo.png" alt="" /></div>
     <div class="bar"><i></i></div>
     <img class="words" src="/assets/page/loading.png" alt="Loading" />
   </div>
   <div id="asleep" hidden>
-    <div class="bird"><img src="/assets/page/asleep.png" alt="" loading="lazy" /></div>
-    <img class="words" src="/assets/page/asleep_words.png" alt="Bobo is napping... come back later!" loading="lazy" />
+    <div class="bird">
+      <img class="asleep" src="/assets/page/asleep.png" alt="" loading="lazy" />
+      <img class="poked" src="/assets/page/poked.png" alt="" loading="lazy" />
+      <img class="waking" src="/assets/page/waking.png" alt="" loading="lazy" />
+    </div>
+    <img class="words deep" src="/assets/page/asleep_words.png" alt="Bobo is fast asleep... come back later!" loading="lazy" hidden />
+    <img class="words nap" src="/assets/page/napping_words.png" alt="Bobo is napping... poke him awake!" loading="lazy" hidden />
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

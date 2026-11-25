@@ -5,7 +5,7 @@ import { UI } from '../../src/ui/colors.ts';
 import { BIOMES } from '../../src/world/biomes.ts';
 import { drawText, textWidth } from '../../src/ui/font.ts';
 import { LANGUAGES, TEXTS, inEvery } from '../../src/language.ts';
-import { napping } from './bird.ts';
+import { NAP, NAPPING, NEST_RIM, boboStrip, type Frame as BirdFrame, type P } from './bird.ts';
 import { pixelsOf } from './lib/assets.ts';
 import { mix, type Img, type Pixels, type Px } from './lib/pixels.ts';
 
@@ -140,30 +140,91 @@ function loadingWords(): Canvas {
   return c;
 }
 
-/** The z's: [x, y, size, first frame, last frame], drifting up a pixel every other frame. */
+/** The z's: [x, y, size, first frame, last frame]. */
 const ZS: [number, number, number, number, number][] = [[34, 11, 4, 1, 5], [39, 5, 5, 2, 6], [45, 0, 6, 3, 7]];
-const zGlyph = (n: number) => Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => y === 0 || y === n - 1 || x === n - 2 - (y - 1)));
+const zGlyph = (n: number) => Array.from({ length: n }, (_, y) => Array.from({ length: n }, (_, x) => y === 0 || y === n - 1 || x === n - 2 - (y - 1) ? '#' : '.').join(''));
 
-/** Bobo asleep, a strip of 72x44 frames: the page shows it until the game opens. */
-function asleep(): Canvas {
-  const W = 72, H = 44, bird = napping(), frames = bird.w / 40;
-  const LEFT = 20;                                         // the nest (x 0 to 30 in the bird's frame) in the middle, under the words
-  const c = new Canvas(W * frames, H);
-  for (let i = 0; i < frames; i++) {
-    c.blit(bird, i * W + LEFT, H - 40, i * 40, 0, 40, 40);
-    for (const [x, y, n, from, to] of ZS) {
-      if (i < from || i > to) continue;
-      const g = zGlyph(n), dy = (i - from) >> 1;
-      g.forEach((row, gy) => row.forEach((on, gx) => { if (on) c.set(i * W + LEFT + x + gx, y - dy + gy + 2, i === to ? UI.dim : UI.text); }));
-    }
-  }
+/** The asleep screen's frames: 72x44, the bird's 40 px frame at (LEFT, TOP). */
+const W = 72, H = 44, TOP = H - 40;
+const LEFT = 20;                                           // the nest (x 0 to 30 in the bird's frame) in the middle, under the words
+
+const BANG = ['##', '##', '##', '##', '##', '##', '..', '##', '##'];
+const ASK = ['.###.', '##.##', '...##', '..##.', '..##.', '.....', '..##.'];
+const POP = ['#..#..#', '.#...#.', '.......', '##...##', '.......', '.#...#.', '#..#..#'];
+const POPPED = ['#...#', '.....', '.....', '.....', '#...#'];
+type Mark = [rows: string[], x: number, y: number, color: number];
+const bang: Mark = [BANG, 55, 1, UI.gold];
+const ask: Mark = [ASK, 56, 2, UI.text];
+/** Over his back: where the poke lands. */
+const pop: Mark = [POP, 26, 9, UI.text];
+const popped: Mark = [POPPED, 27, 10, UI.dim];
+
+/** Short: standing in the nest, his toes stay in it. */
+const IN_NEST: BirdFrame['legs'] = [{ heel: [-2, 4], ankle: [0.5, 7.5], planted: true }, { heel: [-2.5, 4], ankle: [-0.5, 7.5], planted: true }];
+/** The cap lying beside the nest. */
+const CAP_DOWN: P = [-3, 43.3];
+const nap = (f: Partial<BirdFrame> = {}): BirdFrame => ({ ...NAP, ...f });
+const stand = (f: Partial<BirdFrame> = {}): BirdFrame => ({ pose: 'idle', bob: 0, phase: 0, nest: NEST_RIM, empty: true, legs: IN_NEST, ...f });
+const aloft = (pose: 'jump' | 'glide', bob: number, phase: number, f: Partial<BirdFrame> = {}): BirdFrame => ({ pose, bob, phase, nest: NEST_RIM, empty: true, crest: 'up', ...f });
+
+/** A frame of Bobo and the marks drawn over it. */
+interface Beat { bird: BirdFrame; marks?: Mark[] }
+
+/** Pokes one to four: a hop in the nest, higher each time. */
+const POKED: Beat[][] = [
+  [{ bird: nap({ bob: -3, squint: true }), marks: [pop] }, { bird: nap({ bob: -2.5, squint: true }), marks: [popped] }, { bird: nap({ puff: 0.8 }) }, { bird: nap() }],
+  [{ bird: nap({ bob: -4, squint: true }), marks: [pop] }, { bird: nap({ bob: -3, squint: true }), marks: [popped] }, { bird: nap({ puff: 0.9 }) }, { bird: nap() }],
+  [{ bird: nap({ bob: -5, eyes: 'open' }), marks: [pop] }, { bird: nap({ bob: -3.5, eyes: 'open' }), marks: [popped] }, { bird: nap({ bob: -2.5 }) }, { bird: nap() }],
+  [{ bird: nap({ bob: -6, eyes: 'open', puff: 1 }), marks: [pop] }, { bird: nap({ bob: -4, eyes: 'open' }), marks: [popped, ask] }, { bird: nap({ eyes: 'open' }), marks: [ask] }, { bird: nap({ eyes: 'shut' }) }],
+];
+
+/** The fifth: he jumps out flapping, the cap tumbles down beside the nest, and he lands. */
+const WAKING: Beat[] = [
+  { bird: nap({ eyes: 'open' }), marks: [bang] },
+  { bird: nap({ eyes: 'open', puff: 1.4 }), marks: [bang] },
+  { bird: nap({ eyes: 'open', puff: 1.2, head: [1, -1], cap: [27.5, 14] }) },
+  { bird: aloft('jump', -3, 1, { cap: [21, 7] }) },
+  { bird: aloft('jump', -6, 2, { cap: [13, 5] }) },
+  { bird: aloft('glide', -7, 0, { cap: [6, 10] }) },
+  { bird: aloft('glide', -5, 1, { cap: [1, 20] }) },
+  { bird: aloft('jump', -2, 1, { crest: 'swept', cap: [-2, 32] }) },
+  { bird: stand({ cap: CAP_DOWN }) },
+  { bird: stand({ open: true, crest: 'up', cap: CAP_DOWN }) },
+  { bird: stand({ open: true, crest: 'up', cap: CAP_DOWN }) },
+  { bird: stand({ cap: CAP_DOWN }) },
+];
+
+const glyph = (c: Canvas, rows: string[], x: number, y: number, color: number) =>
+  rows.forEach((row, gy) => [...row].forEach((ch, gx) => { if (ch === '#') c.set(x + gx, y + gy, color); }));
+
+/** A row of frames, from (0, y). */
+function beats(c: Canvas, row: Beat[], y: number): Canvas {
+  c.blit(boboStrip(`page frames at ${y}`, row.map(b => b.bird), W, H, LEFT, TOP), 0, y);
+  row.forEach((b, i) => b.marks?.forEach(([rows, x, my, color]) => glyph(c, rows, i * W + x, y + my, color)));
   return c;
 }
 
+/** Bobo asleep, a strip of frames: the page shows it until the game opens. The z's drift up a pixel every other frame. */
+function asleep(): Canvas {
+  const c = beats(new Canvas(W * NAPPING.length, H), NAPPING.map(bird => ({ bird })), 0);
+  NAPPING.forEach((_, i) => {
+    for (const [x, y, n, from, to] of ZS) {
+      if (i >= from && i <= to) glyph(c, zGlyph(n), i * W + LEFT + x, y - ((i - from) >> 1) + 2, i === to ? UI.dim : UI.text);
+    }
+  });
+  return c;
+}
+
+/** Bobo poked: a row of frames for each of the first four pokes. */
+const poked = () => POKED.reduce((c, row, r) => beats(c, row, r * H), new Canvas(W * 4, H * POKED.length));
+
+/** Bobo waking up: the last frame is held until the game starts. */
+const waking = () => beats(new Canvas(W * WAKING.length, H), WAKING, 0);
+
 /** German on top, as the loading words. */
-function asleepWords(): Canvas {
+function asleepWords(first: 'asleep.deep' | 'asleep.napping', second: 'asleep.later' | 'asleep.poke'): Canvas {
   const LINE = 12, GAP = 6;
-  const blocks = LANGUAGES.map(l => [TEXTS[l.id]['asleep.napping'], TEXTS[l.id]['asleep.later']]);
+  const blocks = LANGUAGES.map(l => [TEXTS[l.id][first], TEXTS[l.id][second]]);
   const w = Math.max(...blocks.flat().map(l => textWidth(l))) + 2;
   const c = new Canvas(w, blocks.length * 2 * LINE + (blocks.length - 1) * GAP);
   blocks.forEach((lines, b) => lines.forEach((l, i) => c.text(l, 1 + ((w - 2 - textWidth(l)) >> 1), 1 + b * (2 * LINE + GAP) + i * LINE, UI.text)));
@@ -184,5 +245,8 @@ export function makePage(out: Img[]): void {
   push(PAGE_IMAGES['page.banner'], banner(out));
   push(PAGE_IMAGES['page.loading'], loadingWords());
   push(PAGE_IMAGES['page.asleep'], asleep());
-  push(PAGE_IMAGES['page.asleep_words'], asleepWords());
+  push(PAGE_IMAGES['page.asleep_words'], asleepWords('asleep.deep', 'asleep.later'));
+  push(PAGE_IMAGES['page.napping_words'], asleepWords('asleep.napping', 'asleep.poke'));
+  push(PAGE_IMAGES['page.poked'], poked());
+  push(PAGE_IMAGES['page.waking'], waking());
 }

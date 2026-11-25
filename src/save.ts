@@ -1,8 +1,8 @@
 // localStorage can be missing or throw (private mode, blocked site data): every access is guarded.
 const KEY = 'jjs-birdbuster';
 
-/** key: the gate's key hash, once the secret link opened it here */
-interface SaveData { muted: boolean; volume: number; beaten: boolean; language?: string; place?: string; key?: string }
+/** key: the gate's key hash, once the secret link opened it here. woken: Bobo was poked awake here. */
+interface SaveData { muted: boolean; volume: number; beaten: boolean; language?: string; place?: string; key?: string; woken?: boolean }
 
 const DEFAULT_VOLUME = 0.5;
 
@@ -11,7 +11,7 @@ function load(): SaveData {
     const d = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<SaveData>;
     const volume = typeof d.volume === 'number' && d.volume >= 0 && d.volume <= 1 ? d.volume : DEFAULT_VOLUME;
     const text = (v: unknown) => (typeof v === 'string' ? v : undefined);
-    return { muted: d.muted ?? false, volume, beaten: d.beaten === true, language: text(d.language), place: text(d.place), key: text(d.key) };
+    return { muted: d.muted ?? false, volume, beaten: d.beaten === true, language: text(d.language), place: text(d.place), key: text(d.key), woken: d.woken === true };
   } catch { return { muted: false, volume: DEFAULT_VOLUME, beaten: false }; }
 }
 
@@ -31,3 +31,5 @@ export function savedStepId(): string | undefined { return load().place; }
 export function saveStepId(id: string | undefined): void { store({ ...load(), place: id }); }
 export function savedKey(): string | undefined { return load().key; }
 export function saveKey(key: string): void { store({ ...load(), key }); }
+export function savedWoken(): boolean { return load().woken === true; }
+export function saveWoken(): void { store({ ...load(), woken: true }); }
